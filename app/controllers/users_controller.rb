@@ -32,6 +32,30 @@ class UsersController < ApplicationController
           render json: { error: 'Erro ao excluir o usuário' }, status: :unprocessable_entity
         end
     end
+
+    def validate_token
+        token = params[:token]
+        if token
+          if valid_token?(token)
+            render json: { valid: true }
+          else
+            render json: { valid: false }
+          end
+        else
+          render json: { message: 'Token ausente' }, status: :bad_request
+        end
+      end
+    
+      private
+    
+      def valid_token?(token)
+        begin
+          decoded_payload = JWT.decode(token, 'secret', true, algorithm: 'HS256')
+          return true
+        rescue JWT::DecodeError
+          return false
+        end
+      end
     
     private
         

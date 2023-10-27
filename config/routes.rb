@@ -3,4 +3,6 @@ Rails.application.routes.draw do
   post "/login", to: "users#login"
   get "/users", to: "users#index"
   delete "/users/:id", to: "users#destroy"
+  post '/valid_token', to: 'users#validate_token'
+
 end
