@@ -18,6 +18,20 @@ class UsersController < ApplicationController
             render json: {error: 'Campos inválidos'}, status: :unprocessable_entity
         end
     end
+
+    def index
+        @users = User.all
+        render json: @users, status: :ok
+    end
+
+    def destroy
+        @user = User.find(params[:id])
+        if @user.destroy
+          render json: { message: 'Usuário excluído com sucesso' }, status: :ok
+        else
+          render json: { error: 'Erro ao excluir o usuário' }, status: :unprocessable_entity
+        end
+    end
     
     private
         
