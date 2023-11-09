@@ -1,32 +1,24 @@
 class UsersController < ApplicationController
     def create
+      existing_user = User.find_by(email: user_params[:email])
+
+      if existing_user
+        render json: { error: 'Email já cadastrado' }, status: :error
+      else
         @user = User.create(user_params)
         if @user.valid?
-          if @user.isAdmin
-            @user.save
-          else
-            current_year = Time.now.year % 100
-            random_numbers = "%09d" % rand(1000000000) 
-            
-            matricula = "#{current_year}#{random_numbers}"
-            @user.matricula = matricula
-          end
-
-          if @user.save
             token = encode_token({user_id: @user.id})
             render json: {user: @user, token: token}, status: :ok
-          else
-            render json: { error: 'Falha ao salvar o usuário' }, status: :unprocessable_entity
-          end
         else
             render json: {error: 'Campos inválidos'}, status: :unprocessable_entity
         end
+      end
     end
     
     def login
         @user = User.find_by(email: user_params[:email])
         if @user && @user.authenticate(user_params[:password])
-            token_payload = { user_id: @user.id, isAdmin: @user.isAdmin, name: @user.name, matricula: @user.matricula }
+            token_payload = { user_id: @user.id, isAdmin: @user.isAdmin, name: @user.name, email: @user.email }
             token = encode_token(token_payload)
             render json: {user: @user, token: token}, status: :ok
         else

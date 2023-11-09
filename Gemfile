@@ -42,6 +42,21 @@ group :development, :test do
   gem "debug", platforms: %i[ mri mingw x64_mingw ]
 end
 
+group :development, :test do
+  gem 'rspec-rails', '~> 6.0', '>= 6.0.1'
+end
+
+group :test do
+  # Strategies for cleaning databases in Ruby.
+  gem 'database_cleaner'
+  # Code coverage for Ruby 1.9+
+  gem 'simplecov', require: false
+end
+
+group :development, :test do
+  gem 'factory_bot_rails'
+end
+
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
