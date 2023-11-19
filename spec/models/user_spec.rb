@@ -1,4 +1,6 @@
-describe User do 
+require 'rails_helper'
+
+RSpec.describe User do 
     it "é válido quando email está presente" do 
      user = User.new( name: 'Renata', 
       email: 'renataalb@email.com' ) 

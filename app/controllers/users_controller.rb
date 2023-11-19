@@ -3,7 +3,7 @@ class UsersController < ApplicationController
       existing_user = User.find_by(email: user_params[:email])
 
       if existing_user
-        render json: { error: 'Email já cadastrado' }, status: :error
+        render json: { error: 'Email já cadastrado' }, status: :unprocessable_entity
       else
         @user = User.create(user_params)
         if @user.valid?

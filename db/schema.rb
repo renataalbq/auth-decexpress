@@ -10,7 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_07_232402) do
+ActiveRecord::Schema[7.0].define(version: 2023_11_19_203650) do
+  create_table "documentos", force: :cascade do |t|
+    t.date "data_solicitacao"
+    t.date "data_validade"
+    t.string "tipo"
+    t.string "matricula"
+    t.string "cpf"
+    t.string "nome_aluno"
+    t.string "url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "documents", force: :cascade do |t|
+    t.date "data_solicitacao"
+    t.date "data_validade"
+    t.string "tipo"
+    t.string "matricula"
+    t.string "cpf"
+    t.string "nome_aluno"
+    t.binary "dados"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "name"
     t.string "email"
