@@ -41,6 +41,7 @@ gem 'bunny'
 gem 'prawn'
 gem 'kaminari'
 gem 'matrix'
+gem 'actionmailer', require: 'action_mailer'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

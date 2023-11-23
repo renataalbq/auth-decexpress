@@ -1,10 +1,14 @@
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show update destroy ]
+  before_action :set_document, only: %i[ show destroy generate_pdf download ]
 
   # GET /documents
   def index
-    @documents = Document.page(params[:page]).per(10) # 10 documentos por página
-    render json: @documents
+    @documents = Document.page(params[:page]).per(5) # 5 documentos por página
+    render json: {
+      documents: @documents,
+      total_pages: @documents.total_pages,
+      current_page: @documents.current_page
+    }
   end
 
   # GET /documents/1
@@ -17,8 +21,7 @@ class DocumentsController < ApplicationController
     @document = Document.new(document_params)
   
     if @document.save
-      DOCUMENTO_QUEUE.publish(@document.id.to_s, content_type: 'text/plain')
-      render json: { status: 'Solicitação recebida e adicionada à fila', document: @document }, status: :created
+      render json: { status: 'Documento criado com sucesso', document: @document }, status: :created
     else
       render json: @document.errors, status: :unprocessable_entity
     end
@@ -30,28 +33,46 @@ class DocumentsController < ApplicationController
   end
 
   def generate_pdf
-    @document = Document.find(params[:id])
-  
     pdf = Prawn::Document.new
-    pdf.text "Documento ##{params[:id]}"
-    pdf.text "#{@document.nome_aluno}, de matrícula: #{@document.matricula} e CPF: #{@document.cpf} está matriculado na escola Escola no ano de #{Time.now.year}."
-  
-    # Salvar o PDF
-    save_path = Rails.root.join('public','pdfs',"documento_#{params[:id]}.pdf")
+    pdf.image "./app/assets/logo2.png", at: [0, pdf.cursor], width: 50
+    pdf.bounding_box([60, pdf.cursor - 20], :width => 400, :height => 50) do
+      pdf.text "DecExpress", size: 12, align: :left
+    end
+    pdf.move_down 50
+    pdf.text "##{@document.id}", align: :center
+    pdf.move_down 5
+    pdf.text "DECLARAÇÃO ACADÊMICA", align: :center, style: :bold
+    pdf.move_down 10
+    pdf.text "Declaramos para os fins que se fizerem necessários, e por nos haver sido solicitado, que #{@document.nome_aluno}, de matrícula: #{@document.matricula} está regularmente matriculado nesta Insituição de Ensino, no ano de #{Time.now.year}.", align: :center
+    pdf.move_down 10
+    pdf.text "João Pessoa, #{@document.data_solicitacao}", align: :right
+    pdf.text "Valido até #{@document.data_validade}", align: :right
+    
+
+    save_path = Rails.root.join('public','pdfs',"documento_#{@document.id}.pdf")
     pdf.render_file save_path.to_s
   
-    render json: { message: "PDF gerado com sucesso." }, status: :ok
+    send_email(@document)
+
+    render json: { message: "PDF gerado e email enviado para #{@document.email_aluno} com sucesso." }, status: :ok
+  end
+
+  def send_email(document)
+    DocumentMailer.send_document(document).deliver_now
   end
 
   def download
-    @document = Document.find(params[:id])
-    file_path = Rails.root.join('public','pdfs',"documento_#{params[:id]}.pdf")
+    connection = Bunny.new('amqp://guest:guest@localhost:5672')
+    connection.start
   
-    if File.exist?(file_path)
-      send_file(file_path, filename: "documento_#{params[:id]}.pdf", type: 'application/pdf', disposition: 'attachment')
-    else
-      render json: { error: "Arquivo não encontrado." }, status: :not_found
-    end
+    channel = connection.create_channel
+    queue = channel.queue('documents')
+  
+    queue.publish(@document.id.to_s, content_type: 'text/plain')
+  
+    connection.close
+  
+    render json: { message: "E-mail com o documento está sendo enviado." }, status: :ok
   end
 
   private
@@ -62,6 +83,6 @@ class DocumentsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def document_params
-      params.require(:document).permit(:data_solicitacao, :data_validade, :tipo, :matricula, :cpf, :nome_aluno, :url, :dados)
+      params.require(:document).permit(:data_solicitacao, :data_validade, :tipo, :matricula, :cpf, :nome_aluno, :email_aluno)
     end
 end
