@@ -3,6 +3,10 @@ Rails.application.routes.draw do
     member do
       get :generate_pdf
       get :download
+      get :send_email, to: 'documents#send_email'
+      get :generate_history, to: 'documents#generate_history'
+      get :download_hist
+      get :send_email_hist, to: 'documents#send_email_hist'
     end
   end
 

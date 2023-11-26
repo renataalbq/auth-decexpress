@@ -6,6 +6,6 @@ FactoryBot.define do
     matricula { "MyString" }
     cpf { "MyString" }
     nome_aluno { "MyString" }
-    dados { "" }
+    email_aluno { "MyString" }
   end
 end

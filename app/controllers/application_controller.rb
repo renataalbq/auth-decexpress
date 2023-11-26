@@ -1,4 +1,14 @@
 class ApplicationController < ActionController::API
+
+    def current_user
+        if decode_token
+          user_id = decode_token[0]['user_id']
+          @current_user ||= User.find(user_id)
+        end
+      rescue ActiveRecord::RecordNotFound
+        nil
+    end
+    
     def encode_token(payload)
         JWT.encode(payload, 'secret')
     end

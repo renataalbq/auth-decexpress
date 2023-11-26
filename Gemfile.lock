@@ -74,6 +74,7 @@ GEM
     bunny (2.22.0)
       amq-protocol (~> 2.3, >= 2.3.1)
       sorted_set (~> 1, >= 1.0.2)
+    cancancan (3.5.0)
     concurrent-ruby (1.2.2)
     crass (1.0.6)
     database_cleaner (2.0.2)
@@ -238,6 +239,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.7)
   bootsnap
   bunny
+  cancancan (~> 3.0)
   database_cleaner
   debug
   factory_bot_rails

@@ -1,9 +1,11 @@
+
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[ show destroy generate_pdf download ]
+  before_action :set_document, only: %i[show destroy generate_pdf download send_email generate_history download_hist send_email_hist]
+  include DataFormatHelper
 
   # GET /documents
   def index
-    @documents = Document.page(params[:page]).per(5) # 5 documentos por página
+    @documents = Document.page(params[:page]).per(10) # 10 documentos por página
     render json: {
       documents: @documents,
       total_pages: @documents.total_pages,
@@ -19,9 +21,15 @@ class DocumentsController < ApplicationController
   # POST /documents
   def create
     @document = Document.new(document_params)
-  
+    
     if @document.save
-      render json: { status: 'Documento criado com sucesso', document: @document }, status: :created
+      if @document.tipo == 'declaracao'
+        pdf_url = generate_pdf(@document)
+        render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_url }, status: :created
+      elsif @document.tipo == 'historico'
+        pdf_hist_url = generate_history(@document)
+        render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_hist_url }, status: :created
+      end
     else
       render json: @document.errors, status: :unprocessable_entity
     end
@@ -32,47 +40,79 @@ class DocumentsController < ApplicationController
     @document.destroy
   end
 
-  def generate_pdf
+  def generate_pdf(document)
+    data_solicitacao_format = formatar_data(document.data_solicitacao)
+    data_validade_format = formatar_data(document.data_validade)
+    
     pdf = Prawn::Document.new
     pdf.image "./app/assets/logo2.png", at: [0, pdf.cursor], width: 50
     pdf.bounding_box([60, pdf.cursor - 20], :width => 400, :height => 50) do
-      pdf.text "DecExpress", size: 12, align: :left
+      pdf.text "DecExpress", size: 14, align: :left
     end
     pdf.move_down 50
-    pdf.text "##{@document.id}", align: :center
+    pdf.text "##{document.id}", align: :center
     pdf.move_down 5
-    pdf.text "DECLARAÇÃO ACADÊMICA", align: :center, style: :bold
+    pdf.text "DECLARAÇÃO ACADÊMICA", align: :center, size: 16, style: :bold
     pdf.move_down 10
-    pdf.text "Declaramos para os fins que se fizerem necessários, e por nos haver sido solicitado, que #{@document.nome_aluno}, de matrícula: #{@document.matricula} está regularmente matriculado nesta Insituição de Ensino, no ano de #{Time.now.year}.", align: :center
-    pdf.move_down 10
-    pdf.text "João Pessoa, #{@document.data_solicitacao}", align: :right
-    pdf.text "Valido até #{@document.data_validade}", align: :right
-    
+    pdf.text "Declaramos para os fins que se fizerem necessários, e por nos haver sido solicitado, que #{document.nome_aluno}, de matrícula: #{document.matricula} está regularmente matriculado(a) nesta Insituição de Ensino, no ano de #{Time.now.year}.", align: :center
+    pdf.move_down 20
+    pdf.text "João Pessoa - PB, #{data_solicitacao_format}", align: :right, size: 12
+    pdf.move_down pdf.bounds.height - pdf.cursor
+    pdf.text "Valido até #{data_validade_format}", align: :right, size: 12
+    Prawn::Fonts::AFM.hide_m17n_warning = true
 
-    save_path = Rails.root.join('public','pdfs',"documento_#{@document.id}.pdf")
-    pdf.render_file save_path.to_s
-  
-    send_email(@document)
-
-    render json: { message: "PDF gerado e email enviado para #{@document.email_aluno} com sucesso." }, status: :ok
+    pdf_url = "/pdfs/documento_#{document.id}.pdf"
+    pdf.render_file Rails.root.join('public', 'pdfs', "documento_#{document.id}.pdf")
+    pdf_url
   end
 
-  def send_email(document)
-    DocumentMailer.send_document(document).deliver_now
+  def generate_history(document)
+    pdf_hist = HistoryPdfService.generate(document)
+    pdf_hist_url = Rails.root.join('public', 'pdfs', "historico_#{document.id}.pdf")
+    
+    pdf_hist.render_file(pdf_hist_url)
+    
+    send_file pdf_hist_url,
+              type: 'application/pdf',
+              disposition: 'inline'
+  end
+
+  def send_email
+    DocumentMailer.send_document(@document).deliver_now
+    render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :internal_server_error
+    # connection = Bunny.new
+    # connection.start
+    # channel = connection.create_channel
+    # channel.confirm_select
+    # queue = channel.queue('documents')
+    # queue.publish(document.id.to_s, content_type: 'text/plain')
+    # connection.close
+    # render json: { message: "E-mail com o documento está sendo enviado." }, status: :ok
+  end
+
+  def send_email_hist
+    DocumentMailer.send_document_hist(@document).deliver_now
+    render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
+    rescue StandardError => e
+      render json: { error: e.message }, status: :internal_server_error
+  end
+
+  def download_hist
+    send_file document_hist_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+  end
+
+  def document_hist_pdf_path(document)
+    Rails.root.join('public', 'pdfs', "historico_#{document.id}.pdf")
   end
 
   def download
-    connection = Bunny.new('amqp://guest:guest@localhost:5672')
-    connection.start
-  
-    channel = connection.create_channel
-    queue = channel.queue('documents')
-  
-    queue.publish(@document.id.to_s, content_type: 'text/plain')
-  
-    connection.close
-  
-    render json: { message: "E-mail com o documento está sendo enviado." }, status: :ok
+    send_file document_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+  end
+
+  def document_pdf_path(document)
+    Rails.root.join('public', 'pdfs', "documento_#{document.id}.pdf")
   end
 
   private

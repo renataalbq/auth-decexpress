@@ -42,6 +42,7 @@ gem 'prawn'
 gem 'kaminari'
 gem 'matrix'
 gem 'actionmailer', require: 'action_mailer'
+gem 'cancancan', '~> 3.0'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
