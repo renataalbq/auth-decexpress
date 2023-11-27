@@ -41,7 +41,7 @@ Rails.application.configure do
   config.action_mailer.smtp_settings = {
     address: 'mail.gmx.com',
     port: 587,
-    user_name: 'decexpress@gmx.com',
+    user_name: 'dec-express@gmx.com',
     password: 'Decexpress147*',
     authentication: 'plain',
     enable_starttls_auto: true

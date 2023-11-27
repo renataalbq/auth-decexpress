@@ -1,5 +1,5 @@
 class DocumentMailer < ApplicationMailer
-    default from: 'decexpress@gmx.com'
+    default from: 'dec-express@gmx.com'
   
     def send_document(document)
       @document = document

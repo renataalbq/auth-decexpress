@@ -68,13 +68,10 @@ class DocumentsController < ApplicationController
 
   def generate_history(document)
     pdf_hist = HistoryPdfService.generate(document)
-    pdf_hist_url = Rails.root.join('public', 'pdfs', "historico_#{document.id}.pdf")
+    pdf_hist_url = "/pdfs/historico_#{document.id}.pdf"
     
-    pdf_hist.render_file(pdf_hist_url)
-    
-    send_file pdf_hist_url,
-              type: 'application/pdf',
-              disposition: 'inline'
+    pdf_hist.render_file Rails.root.join('public', 'pdfs', "historico_#{document.id}.pdf")
+    pdf_hist_url
   end
 
   def send_email
