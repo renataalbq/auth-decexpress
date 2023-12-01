@@ -1,6 +1,7 @@
 
 class DocumentsController < ApplicationController
   before_action :set_document, only: %i[show destroy generate_pdf download send_email generate_history download_hist send_email_hist]
+  load_and_authorize_resource
   include DataFormatHelper
 
   # GET /documents

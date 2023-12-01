@@ -10,19 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_11_23_214908) do
-  create_table "documentos", force: :cascade do |t|
-    t.date "data_solicitacao"
-    t.date "data_validade"
-    t.string "tipo"
-    t.string "matricula"
-    t.string "cpf"
-    t.string "nome_aluno"
-    t.string "url"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
+ActiveRecord::Schema[7.0].define(version: 2023_12_01_031058) do
   create_table "documents", force: :cascade do |t|
     t.date "data_solicitacao"
     t.date "data_validade"
@@ -33,6 +21,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_11_23_214908) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "email_aluno"
+  end
+
+  create_table "grades", force: :cascade do |t|
+    t.string "professor"
+    t.string "disciplina"
+    t.float "nota"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "nome"
+    t.string "matricula"
+    t.integer "bimestre"
   end
 
   create_table "users", force: :cascade do |t|

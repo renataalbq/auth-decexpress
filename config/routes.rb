@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :grades
   resources :documents do
     member do
       get :generate_pdf
