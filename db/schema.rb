@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_12_01_031058) do
+ActiveRecord::Schema[7.0].define(version: 2023_12_05_143102) do
   create_table "documents", force: :cascade do |t|
     t.date "data_solicitacao"
     t.date "data_validade"
@@ -32,6 +32,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_01_031058) do
     t.string "nome"
     t.string "matricula"
     t.integer "bimestre"
+    t.integer "document_id"
+    t.index ["document_id"], name: "index_grades_on_document_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -43,4 +45,5 @@ ActiveRecord::Schema[7.0].define(version: 2023_12_01_031058) do
     t.boolean "isAdmin"
   end
 
+  add_foreign_key "grades", "documents"
 end

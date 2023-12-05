@@ -20,21 +20,22 @@ class DocumentsController < ApplicationController
   end
 
   # POST /documents
-  def create
-    @document = Document.new(document_params)
-    
-    if @document.save
-      if @document.tipo == 'declaracao'
-        pdf_url = generate_pdf(@document)
-        render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_url }, status: :created
-      elsif @document.tipo == 'historico'
-        pdf_hist_url = generate_history(@document)
-        render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_hist_url }, status: :created
+    def create
+      @document = Document.new(document_params)
+      
+      if @document.save
+        if @document.tipo == 'declaracao'
+          pdf_url = generate_pdf(@document)
+          render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_url }, status: :created
+        elsif @document.tipo == 'historico'
+              @document.grades << Grade.where(id: params[:grade_ids])
+          pdf_hist_url = generate_history(@document, @document.grades)
+          render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_hist_url }, status: :created
+        end
+      else
+        render json: @document.errors, status: :unprocessable_entity
       end
-    else
-      render json: @document.errors, status: :unprocessable_entity
     end
-  end
 
   # DELETE /documents/1
   def destroy
@@ -67,8 +68,8 @@ class DocumentsController < ApplicationController
     pdf_url
   end
 
-  def generate_history(document)
-    pdf_hist = HistoryPdfService.generate(document)
+  def generate_history(document, grades)
+    pdf_hist = HistoryPdfService.generate(document, grades)
     pdf_hist_url = "/pdfs/historico_#{document.id}.pdf"
     
     pdf_hist.render_file Rails.root.join('public', 'pdfs', "historico_#{document.id}.pdf")
@@ -76,29 +77,38 @@ class DocumentsController < ApplicationController
   end
 
   def send_email
+    request_pdf_service = RequestPdfService.new
+    request_pdf_service.publish("Enviando email para o documento de ID: #{@document.id}")
+
     DocumentMailer.send_document(@document).deliver_now
     render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
     rescue StandardError => e
       render json: { error: e.message }, status: :internal_server_error
-    # connection = Bunny.new
-    # connection.start
-    # channel = connection.create_channel
-    # channel.confirm_select
-    # queue = channel.queue('documents')
-    # queue.publish(document.id.to_s, content_type: 'text/plain')
-    # connection.close
-    # render json: { message: "E-mail com o documento está sendo enviado." }, status: :ok
+    ensure
+      request_pdf_service.close
   end
 
   def send_email_hist
+    request_pdf_service = RequestPdfService.new
+    request_pdf_service.publish("Enviando email para o documento de ID: #{@document.id}")
     DocumentMailer.send_document_hist(@document).deliver_now
     render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
     rescue StandardError => e
       render json: { error: e.message }, status: :internal_server_error
+    ensure
+      request_pdf_service.close
   end
 
   def download_hist
-    send_file document_hist_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+    request_pdf_service = RequestPdfService.new
+    begin
+      request_pdf_service.publish("Solicitação de download para historico de ID: #{@document.id}")
+      send_file document_hist_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+    rescue StandardError => e
+      render json: { error: e.message }, status: :internal_server_error
+    ensure
+      request_pdf_service.close
+    end
   end
 
   def document_hist_pdf_path(document)
@@ -106,7 +116,16 @@ class DocumentsController < ApplicationController
   end
 
   def download
-    send_file document_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+    request_pdf_service = RequestPdfService.new
+    begin
+      request_pdf_service.publish(@document.id)
+      render json: { message: 'Seu download foi enfileirado e será processado em breve.' }, status: :ok
+      #send_file document_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
+    rescue StandardError => e
+      render json: { error: e.message }, status: :internal_server_error
+    ensure
+      request_pdf_service.close
+    end
   end
 
   def document_pdf_path(document)
@@ -121,6 +140,6 @@ class DocumentsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def document_params
-      params.require(:document).permit(:data_solicitacao, :data_validade, :tipo, :matricula, :cpf, :nome_aluno, :email_aluno)
+      params.require(:document).permit(:data_solicitacao, :data_validade, :tipo, :matricula, :cpf, :nome_aluno, :email_aluno, grade_ids: [])
     end
 end

@@ -6,8 +6,9 @@ class Ability
     def initialize(user)
         user ||= User.new 
 
+        can :read, Document 
         if user.isAdmin?
-          can [:read, :destroy], Document
+          can [:destroy], Document
         else
           can [:create, :download, :download_hist, :generate_pdf, :generate_history, :send_email, :send_email_hist], Document
         end

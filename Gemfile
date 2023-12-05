@@ -39,6 +39,7 @@ gem "rack-cors"
 
 gem 'bunny'
 gem 'prawn'
+gem 'prawn-table'
 gem 'kaminari'
 gem 'matrix'
 gem 'actionmailer', require: 'action_mailer'
