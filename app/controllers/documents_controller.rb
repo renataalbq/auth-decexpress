@@ -77,38 +77,21 @@ class DocumentsController < ApplicationController
   end
 
   def send_email
-    request_pdf_service = RequestPdfService.new
-    request_pdf_service.publish("Enviando email para o documento de ID: #{@document.id}")
-
     DocumentMailer.send_document(@document).deliver_now
     render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
     rescue StandardError => e
       render json: { error: e.message }, status: :internal_server_error
-    ensure
-      request_pdf_service.close
   end
 
   def send_email_hist
-    request_pdf_service = RequestPdfService.new
-    request_pdf_service.publish("Enviando email para o documento de ID: #{@document.id}")
     DocumentMailer.send_document_hist(@document).deliver_now
     render json: { message: "E-mail com o documento enviado com sucesso." }, status: :ok
     rescue StandardError => e
       render json: { error: e.message }, status: :internal_server_error
-    ensure
-      request_pdf_service.close
   end
 
   def download_hist
-    request_pdf_service = RequestPdfService.new
-    begin
-      request_pdf_service.publish("Solicitação de download para historico de ID: #{@document.id}")
-      send_file document_hist_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
-    rescue StandardError => e
-      render json: { error: e.message }, status: :internal_server_error
-    ensure
-      request_pdf_service.close
-    end
+    send_file document_hist_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
   end
 
   def document_hist_pdf_path(document)
@@ -116,16 +99,7 @@ class DocumentsController < ApplicationController
   end
 
   def download
-    request_pdf_service = RequestPdfService.new
-    begin
-      request_pdf_service.publish(@document.id)
-      render json: { message: 'Seu download foi enfileirado e será processado em breve.' }, status: :ok
-      #send_file document_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
-    rescue StandardError => e
-      render json: { error: e.message }, status: :internal_server_error
-    ensure
-      request_pdf_service.close
-    end
+    send_file document_pdf_path(@document), type: 'application/pdf', disposition: 'attachment'
   end
 
   def document_pdf_path(document)

@@ -7,6 +7,14 @@ class Ability
         user ||= User.new 
 
         can :read, Document 
+        can :read, Grade
+
+        if user.isAdmin?
+          can :manage, Grade
+        else
+          can :create, Grade
+        end
+
         if user.isAdmin?
           can [:destroy], Document
         else

@@ -13,6 +13,17 @@ class GradesController < ApplicationController
     render json: @grade
   end
 
+  def find_by_email
+    email = params[:email]
+    @grades = Grade.where(email: params[:email])
+
+    if @grades
+      render json: @grades
+    else
+      render json: { error: "Nenhuma nota para este aluno" }, status: :not_found
+    end
+  end
+
   # POST /grades
   def create
     @grade = Grade.new(grade_params)
@@ -46,6 +57,6 @@ class GradesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def grade_params
-      params.require(:grade).permit(:nome, :matricula, :professor, :disciplina, :nota, :bimestre)
+      params.require(:grade).permit(:nome, :matricula, :professor, :disciplina, :nota, :bimestre, :email)
     end
 end

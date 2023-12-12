@@ -1,5 +1,10 @@
 Rails.application.routes.draw do
-  resources :grades
+  resources :grades do
+    collection do
+      get 'find_by_email', to: 'grades#find_by_email'
+    end
+  end
+  
   resources :documents do
     member do
       get :generate_pdf
@@ -16,4 +21,7 @@ Rails.application.routes.draw do
   get "/users", to: "users#index"
   delete "/users/:id", to: "users#destroy"
   post '/valid_token', to: 'users#validate_token'
+
+  resources :teachers, only: [:index, :show]
+  resources :subjects, only: [:index, :show]
 end
