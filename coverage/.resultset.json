@@ -1,6 +1,15 @@
 {
   "RSpec": {
     "coverage": {
+      "C:/Users/renat/auth-decexpress/app/helpers/data_format_helper.rb": {
+        "lines": [
+          1,
+          1,
+          0,
+          null,
+          null
+        ]
+      },
       "C:/Users/renat/auth-decexpress/app/controllers/documents_controller.rb": {
         "lines": [
           null,
@@ -130,6 +139,7 @@
         "lines": [
           0,
           0,
+          0,
           null,
           null,
           0,
@@ -139,6 +149,17 @@
           0,
           null,
           null,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
           0,
           0,
           0,
@@ -186,6 +207,15 @@
       "C:/Users/renat/auth-decexpress/app/controllers/subjects_controller.rb": {
         "lines": [
           0,
+          0,
+          0,
+          0,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
           0
         ],
         "branches": {
@@ -194,13 +224,11 @@
       "C:/Users/renat/auth-decexpress/app/controllers/teachers_controller.rb": {
         "lines": [
           0,
-          0
-        ],
-        "branches": {
-        }
-      },
-      "C:/Users/renat/auth-decexpress/app/helpers/data_format_helper.rb": {
-        "lines": [
+          0,
+          0,
+          0,
+          0,
+          null,
           0,
           0,
           0,
@@ -259,6 +287,19 @@
           0,
           0,
           0,
+          0,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          null,
           0
         ],
         "branches": {
@@ -266,6 +307,10 @@
       },
       "C:/Users/renat/auth-decexpress/app/models/grade.rb": {
         "lines": [
+          0,
+          0,
+          0,
+          0,
           0,
           0,
           0
@@ -323,6 +368,6 @@
         }
       }
     },
-    "timestamp": 1702295339
+    "timestamp": 1702417627
   }
 }

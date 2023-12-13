@@ -137,7 +137,7 @@ describe 'GET #download_hist' do
 end
 
   describe 'GET #generate_history' do
-    let(:document) { create(:document, tipo: 'historico') } # Criação de um documento de teste
+    let(:document) { create(:document, tipo: 'historico') } 
 
     before do
       get :generate_history, params: { id: document.id }

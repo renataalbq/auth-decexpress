@@ -1,7 +1,6 @@
 class HistoryPdfService
   def self.generate(document, grades)
     Prawn::Document.new do |pdf|
-      # Configurações iniciais, como adicionar a imagem e o título
       pdf.image "#{Rails.root}/app/assets/logo2.png", width: 50, height: 50
       pdf.text "DECEXPRESS", align: :center
       pdf.move_down 20
@@ -39,7 +38,7 @@ class HistoryPdfService
       pdf.move_down 20
 
       # Texto de certificação e data
-      pdf.text "Certificamos que #{document.nome_aluno}, concluiu o 2º ano do ensino médio, no ano de #{Time.zone.now.year}, de acordo com a Lei Vigente, tendo obtido os resultados constantes neste Histórico Escolar, dando-lhe o direito de prosseguimento de estudos no Ensino Médio.", align: :center, size: 10
+      pdf.text "Certificamos que #{document.nome_aluno}, está regularmente matriculado(a) nesta Insituição de Ensino, no ano de #{Time.now.year}.", align: :center, size: 10
       pdf.move_down 30
       pdf.text "João Pessoa - PB, #{Time.zone.now.strftime('%d/%m/%Y')}", align: :right, size: 12
 
