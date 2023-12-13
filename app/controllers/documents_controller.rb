@@ -1,7 +1,6 @@
 
 class DocumentsController < ApplicationController
-  before_action :set_document, only: %i[show destroy generate_pdf download send_email generate_history download_hist send_email_hist]
-  load_and_authorize_resource
+  before_action :set_document, only: %i[destroy show generate_pdf download send_email generate_history download_hist send_email_hist]
   include DataFormatHelper
 
   # GET /documents
@@ -16,7 +15,10 @@ class DocumentsController < ApplicationController
 
   # GET /documents/1
   def show
+    @document = Document.find(params[:id])
     render json: @document
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Documento não encontrado" }, status: :not_found
   end
 
   # POST /documents

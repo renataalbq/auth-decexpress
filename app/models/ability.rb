@@ -9,8 +9,9 @@ class Ability
         can :read, Document 
         can :read, Grade
 
-        if user.isAdmin?
+        if user.isAdmin
           can [:create, :destroy, :update, :read], Document
+          can [:create, :destroy, :update, :read], Grade
         else
           can [:create, :download, :download_hist, :generate_pdf, :generate_history, :send_email, :send_email_hist], Document
         end
