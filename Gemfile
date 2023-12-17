@@ -44,6 +44,7 @@ gem 'kaminari'
 gem 'matrix'
 gem 'actionmailer', require: 'action_mailer'
 gem 'cancancan', '~> 3.0'
+gem 'lograge'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -51,7 +52,7 @@ group :development, :test do
 end
 
 group :development, :test do
-  gem 'rspec-rails', '~> 6.0', '>= 6.0.1'
+  gem 'rspec-rails', '~> 6.1.0'
 end
 
 group :test do

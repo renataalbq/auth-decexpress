@@ -1,16 +1,11 @@
 
 class DocumentsController < ApplicationController
   before_action :set_document, only: %i[destroy show generate_pdf download send_email generate_history download_hist send_email_hist]
-  include DataFormatHelper
 
   # GET /documents
   def index
-    @documents = Document.page(params[:page]).per(10) # 10 documentos por página
-    render json: {
-      documents: @documents,
-      total_pages: @documents.total_pages,
-      current_page: @documents.current_page
-    }
+    @documents = Document.all
+    render json: @documents
   end
 
   # GET /documents/1
@@ -27,14 +22,19 @@ class DocumentsController < ApplicationController
       
       if @document.save
         if @document.tipo == 'declaracao'
+          Rails.logger.info "Documento Declaração criado com sucesso: #{@document}"
+          PdfDownloadWorker.send_to_queue(@document)
           pdf_url = generate_pdf(@document)
           render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_url }, status: :created
         elsif @document.tipo == 'historico'
-              @document.grades << Grade.where(id: params[:grade_ids])
+          @document.grades << Grade.where(id: params[:grade_ids])
+          Rails.logger.info "Documento Histórico criado com sucesso: #{@document}"
+          PdfDownloadWorker.send_to_queue(@document)
           pdf_hist_url = generate_history(@document, @document.grades)
           render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_hist_url }, status: :created
         end
       else
+        Rails.logger.error "Erro ao criar documento: #{@document.errors}"
         render json: @document.errors, status: :unprocessable_entity
       end
     end
@@ -45,28 +45,9 @@ class DocumentsController < ApplicationController
   end
 
   def generate_pdf(document)
-    data_solicitacao_format = formatar_data(document.data_solicitacao)
-    data_validade_format = formatar_data(document.data_validade)
-    
-    pdf = Prawn::Document.new
-    pdf.image "./app/assets/logo2.png", at: [0, pdf.cursor], width: 50
-    pdf.bounding_box([60, pdf.cursor - 20], :width => 400, :height => 50) do
-      pdf.text "DecExpress", size: 14, align: :left
-    end
-    pdf.move_down 50
-    pdf.text "##{document.id}", align: :center
-    pdf.move_down 5
-    pdf.text "DECLARAÇÃO ACADÊMICA", align: :center, size: 16, style: :bold
-    pdf.move_down 10
-    pdf.text "Declaramos para os fins que se fizerem necessários, e por nos haver sido solicitado, que #{document.nome_aluno}, de matrícula: #{document.matricula} está regularmente matriculado(a) nesta Insituição de Ensino, no ano de #{Time.now.year}.", align: :center
-    pdf.move_down 20
-    pdf.text "João Pessoa - PB, #{data_solicitacao_format}", align: :right, size: 12
-    pdf.move_down pdf.bounds.height - pdf.cursor
-    pdf.text "Valido até #{data_validade_format}", align: :right, size: 12
-    Prawn::Fonts::AFM.hide_m17n_warning = true
-
+    pdf_dec = DeclarationPdfService.generate(document)
     pdf_url = "/pdfs/documento_#{document.id}.pdf"
-    pdf.render_file Rails.root.join('public', 'pdfs', "documento_#{document.id}.pdf")
+    pdf_dec.render_file Rails.root.join('public', 'pdfs', "documento_#{document.id}.pdf")
     pdf_url
   end
 
