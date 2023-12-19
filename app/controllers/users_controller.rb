@@ -26,6 +26,20 @@ class UsersController < ApplicationController
         end
     end
 
+    def update_password
+      @user = User.find_by(email: params[:email])
+      
+      if @user
+        if @user.update(password: params[:password])
+          render json: { message: 'Senha atualizada com sucesso' }, status: :ok
+        else
+          render json: @user.errors, status: :unprocessable_entity
+        end
+      else
+        render json: { error: 'Usuário não encontrado' }, status: :not_found
+      end
+    end
+
     def index
         @users = User.all
         render json: @users, status: :ok

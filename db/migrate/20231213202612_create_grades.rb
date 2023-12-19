@@ -5,7 +5,7 @@ class CreateGrades < ActiveRecord::Migration[7.0]
       t.string :matricula
       t.string :professor
       t.string :disciplina
-      t.integer :nota
+      t.float :nota
       t.integer :bimestre
       t.string :email
       t.timestamps

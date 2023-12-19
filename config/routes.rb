@@ -21,6 +21,7 @@ Rails.application.routes.draw do
   get "/users", to: "users#index"
   delete "/users/:id", to: "users#destroy"
   post '/valid_token', to: 'users#validate_token'
+  post '/update_password', to: 'users#update_password'
 
   resources :teachers, only: [:index, :show]
   resources :subjects, only: [:index, :show]

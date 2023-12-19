@@ -27,11 +27,12 @@ class DocumentsController < ApplicationController
           pdf_url = generate_pdf(@document)
           render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_url }, status: :created
         elsif @document.tipo == 'historico'
-          @document.grades << Grade.where(id: params[:grade_ids])
+          grade_ids = params[:grade_ids] || []
+          @document.grades << Grade.where(id: grade_ids)
           Rails.logger.info "Documento Histórico criado com sucesso: #{@document}"
           PdfDownloadWorker.send_to_queue(@document)
           pdf_hist_url = generate_history(@document, @document.grades)
-          render json: { status: 'Documento criado com sucesso', document: @document, pdf_url: pdf_hist_url }, status: :created
+          render json: { status: 'Documento criado com sucesso', document: @document, grade_ids: grade_ids, pdf_url: pdf_hist_url }, status: :created
         end
       else
         Rails.logger.error "Erro ao criar documento: #{@document.errors}"
